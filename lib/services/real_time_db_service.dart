@@ -1,55 +1,51 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:core';
+
 import 'package:firebase_database/firebase_database.dart';
+
 import '../model/student.dart';
 
+
 class RealTimeDbService {
-  static Future<bool> createData({required Student student}) async {
+  static Future<bool> createDatabase({required Student student}) async {
     try {
       DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
       await databaseReference.child('students').push().set(student.toJson());
-      print("Successfully created!");
+      print('Stored Successful');
       return true;
-    } catch (e, s) {
-      print("Error: $e");
-      print("StackTrace: $s");
+    } catch (e,d) {
+      print(e);
+      print("xatolik $d");
       return false;
     }
   }
-
-  static Future<Map<String, Student>?> readData() async {
-    Map<String, Student> mp = {};
-    // get from firebase
+  static Future<Map<String,Student>?> readData() async{
+    Map<String,Student> mp = {};
     DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
-    Query _query = databaseReference.ref.child("students");
-    DatabaseEvent event = await _query.once();
-    DataSnapshot dataSnapshot = event.snapshot;
+    Query _query = databaseReference.ref.child('students');
+    DatabaseEvent databaseEvent = await _query.once();
+    DataSnapshot dataSnapshot = databaseEvent.snapshot;
 
-    // add to list
-    for (var child in dataSnapshot.children) {
+    for(var child in dataSnapshot.children){
       print(child.key);
       var myJson = jsonEncode(child.value);
-      Map<String, dynamic> map = jsonDecode(myJson);
+      Map<String,dynamic> map = jsonDecode(myJson);
       Student student = Student.fromJson(map);
-      mp.addAll({child.key.toString(): student});
+      mp.addAll({child.key.toString():student});
     }
     return mp;
   }
 
-  // deleteData
-
-  static Future<void> deleteData(String studentID) async {
+  static Future<void> updateData(Student newStudent,String studentKey) async{
     DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
-    await databaseReference.child("students").child(studentID).remove();
-    print("Deleted");
+    await databaseReference.child('students').child(studentKey).update(newStudent.toJson());
+    print('Student update successful');
   }
 
-  // update
-  static Future<void> updateData(Student newStudent, String studentId) async {
+  static Future<void> deleteData(String studentId) async {
     DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
-    await databaseReference
-        .child('students')
-        .child(studentId)
-        .update(newStudent.toJson());
-    print("Success");
+    await databaseReference.child('students').child(studentId).remove();
+    print('Student delete successful');
   }
 }

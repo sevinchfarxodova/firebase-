@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_signs/core/routes/route_names.dart';
 import 'package:firebase_signs/services/auth_services.dart';
 import 'package:flutter/gestures.dart';
@@ -13,22 +14,25 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
- bool isLoading = false;
+  bool isLoading = false;
 
-  void signIn(BuildContext context) {
+  void signIn(BuildContext context) async {
     try {
       setState(() {
-        isLoading=true;
+        isLoading = true;
       });
-      AuthService.signInUser(email: emailController.text.trim(),
-          password: passwordController.text.trim());
-      setState(() {
-        isLoading=false;
-      });
+      User? user = await AuthService.signInUser(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim()
+      );
+      print(user?.email);
       Navigator.pushNamed(context, RouteNames.homePage);
     } catch (e) {
       print(e);
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -85,30 +89,29 @@ class _SignInPageState extends State<SignInPage> {
                 const SizedBox(height: 24),
                 isLoading
                     ? Center(child: CircularProgressIndicator())
-                    :
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.purple.shade400,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                    : SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.purple.shade400,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        onPressed: () {
+                          signIn(context);
+                        },
+                        child: const Text(
+                          "Sign in",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
                     ),
-                    onPressed: () {
-                      signIn(context);
-                    },
-                    child: const Text(
-                      "Sign in",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
 
                 const SizedBox(height: 24),
                 RichText(
@@ -123,12 +126,14 @@ class _SignInPageState extends State<SignInPage> {
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.pushNamed(
-                                context,
-                                RouteNames.signUpPage,);
-                          },
+                        recognizer:
+                            TapGestureRecognizer()
+                              ..onTap = () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.signUpPage,
+                                );
+                              },
                       ),
                     ],
                   ),

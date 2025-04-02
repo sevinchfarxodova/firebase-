@@ -1,15 +1,16 @@
 import 'package:firebase_signs/core/routes/route_names.dart';
-import 'package:firebase_signs/model/student.dart';
-import 'package:firebase_signs/services/auth_services.dart';
-import 'package:firebase_signs/services/real_time_db_service.dart';
+import 'package:firebase_signs/services/firestore_service.dart';
 import 'package:flutter/material.dart';
+import '../../model/student.dart';
 
-class HomePage extends StatefulWidget {
+class FirestorePage extends StatefulWidget {
+  const FirestorePage({super.key});
+
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<FirestorePage> createState() => _FirestorePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _FirestorePageState extends State<FirestorePage> {
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController courseController = TextEditingController();
@@ -17,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController imgUrlController = TextEditingController();
   bool isLoading = false;
 
-  Future<void> createData() async {
+  void createStudent() async {
     setState(() {
       isLoading = true;
     });
@@ -25,38 +26,49 @@ class _HomePageState extends State<HomePage> {
     String lastName = lastNameController.text.trim();
     int course = int.parse(courseController.text.trim());
     String faculty = facultyController.text.trim();
-    String imageUrl = imgUrlController.text.trim();
+    String imgUrl = imgUrlController.text.trim();
 
     Student student = Student(
       firstName: firstName,
       lastName: lastName,
       course: course,
       faculty: faculty,
-      imageUrl: imageUrl,
+      imageUrl: imgUrl,
     );
-    if (await RealTimeDbService.createDatabase(student: student) == false) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: const Text('Something wrong')));
-      print("xatolik");
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: const Text('Successfully created')));
-      print("to'g'ri");
+    if (await FireStoreService.createData(student)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Success", style: TextStyle(color: Colors.green)),
+        ),
+      );
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Something wrong", style: TextStyle(color: Colors.red)),
+        ),
+      );
     }
     setState(() {
       isLoading = false;
     });
   }
 
+  void clear(){
+    firstNameController.clear();
+    lastNameController.clear();
+    courseController.clear();
+    facultyController.clear();
+    imgUrlController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple.shade100,
+      backgroundColor: Colors.purple.shade50,
+
       appBar: AppBar(
         title: Text(
-          "Add Your Info",
+          "FireStore ",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -69,25 +81,12 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, RouteNames.fireStorePage);
+              Navigator.pushNamed(context, RouteNames.fireStoreStudentsPage);
             },
-            icon: Icon(Icons.fireplace_sharp),
+            icon: Icon(Icons.dataset),
             color: Colors.white,
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, RouteNames.all_students_info_page);
-            },
-            icon: Icon(Icons.arrow_circle_down_sharp),
-            color: Colors.white,
-          ),
-          IconButton(
-            onPressed: () {
-              AuthService.logOut(context);
-            },
-            icon: Icon(Icons.logout),
-            color: Colors.purpleAccent,
-          ),
+
         ],
       ),
       body: Padding(
@@ -172,7 +171,8 @@ class _HomePageState extends State<HomePage> {
                 : Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      createData();
+                      createStudent();
+                      clear();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple.shade600,

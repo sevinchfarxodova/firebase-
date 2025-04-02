@@ -16,7 +16,7 @@ class Student {
   Student.fromJson(Map<String, dynamic> map)
       : firstName = map['firstName'],
         lastName = map['lastName'],
-        course = int.parse(map['course']?? 0),
+        course = map['course'],
         faculty = map['faculty'],
         imageUrl = map['imageUrl'];
 

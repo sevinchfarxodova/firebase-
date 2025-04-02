@@ -25,8 +25,14 @@ class _AllStudentsInfoPageState extends State<AllStudentsInfoPage> {
       isLoading = true;
     });
     Map<String, Student>? students = await RealTimeDbService.readData();
+    if (students == null) {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
     setState(() {
-      ids = students!.keys.toList();
+      ids = students.keys.toList();
       studentsList = students.values.toList();
       isLoading = false;
     });
@@ -62,38 +68,54 @@ class _AllStudentsInfoPageState extends State<AllStudentsInfoPage> {
                   itemCount: ids.length,
                   itemBuilder: (context, index) {
                     Student student = studentsList[index];
-                    return ListTile(
-                      leading: IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.edit_note_rounded,
-                          color: Colors.black,
+                    return Card(
+                      color: Colors.purple.shade500,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ListTile(
+                        leading: IconButton(
+                          onPressed: () {
+                            bottomSheet(
+                              context: context,
+                              id: ids[index],
+                              student: student,
+                            );
+                          },
+                          icon: Icon(
+                            Icons.edit_note_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
-                      ),
-                      title: Column(
-                        children: [
-                          Text(
-                            student.firstName,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                        title: Column(
+                          children: [
+                            Text(
+                              student.firstName,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
+                            Text(
+                              student.lastName,
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          onPressed: () {
+                            deleteStudent(id: ids[index]);
+                          },
+                          icon: Icon(
+                            Icons.delete_outline_outlined,
+                            color: Colors.red,
+                            size: 28,
                           ),
-                          Text(
-                            student.lastName,
-                            style: TextStyle(fontSize: 17),
-                          ),
-                          Text(student.course.toString()),
-                          Text(student.faculty),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        onPressed: () {
-                          deleteStudent(id: ids[index]);
-                        },
-                        icon: Icon(
-                          Icons.delete_outline_outlined,
-                          color: Colors.red,
                         ),
                       ),
                     );
@@ -130,80 +152,21 @@ class _AllStudentsInfoPageState extends State<AllStudentsInfoPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       builder: (context) {
-        return Padding(
+        return Container(
+          color: Colors.purple.shade100,
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: firstNameController,
-                decoration: InputDecoration(
-                  hintText: "Image...",
-                  hintStyle: TextStyle(color: Colors.purple.shade300),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
+              _buildTextField(firstNameController, "Name..."),
               SizedBox(height: 20),
-              TextField(
-                controller: lastNameController,
-                decoration: InputDecoration(
-                  hintText: "Faculty...",
-                  hintStyle: TextStyle(color: Colors.purple.shade300),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
+              _buildTextField(lastNameController, "LastName..."),
               SizedBox(height: 20),
-              TextField(
-                controller: courseController,
-                decoration: InputDecoration(
-                  hintText: "Faculty...",
-                  hintStyle: TextStyle(color: Colors.purple.shade300),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
+              _buildTextField(courseController, "Course..."),
               SizedBox(height: 20),
-              TextField(
-                controller: facultyController,
-                decoration: InputDecoration(
-                  hintText: "Faculty...",
-                  hintStyle: TextStyle(color: Colors.purple.shade300),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
+              _buildTextField(facultyController, "Faculty..."),
               SizedBox(height: 20),
-              TextField(
-                controller: imgUrlController,
-                decoration: InputDecoration(
-                  hintText: "Faculty...",
-                  hintStyle: TextStyle(color: Colors.purple.shade300),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
+              _buildTextField(imgUrlController, "IMG..."),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
@@ -223,13 +186,42 @@ class _AllStudentsInfoPageState extends State<AllStudentsInfoPage> {
 
                   await RealTimeDbService.updateData(student, id);
                   readData();
+                  Navigator.pop(context);
                 },
-                child: Text("Update"),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                child: Text(
+                  "Update",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint) {
+    return TextField(
+      controller: controller,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(
+          color: Colors.purple.shade300,
+          fontWeight: FontWeight.bold,
+        ),
+        filled: true,
+        fillColor: Colors.purple.shade400,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
     );
   }
 }

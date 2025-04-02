@@ -57,6 +57,8 @@ class DefaultFirebaseOptions {
     appId: '1:41353909592:android:9613cdd117cbc81415812d',
     messagingSenderId: '41353909592',
     projectId: 'signin-9be5a',
+    databaseURL: 'https://signin-9be5a-default-rtdb.firebaseio.com',
     storageBucket: 'signin-9be5a.firebasestorage.app',
   );
+
 }
